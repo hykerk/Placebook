@@ -1,4 +1,4 @@
-package com.raywenderlich.placebook
+package com.raywenderlich.placebook.ui
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -7,7 +7,7 @@ import android.os.Bundle
 import androidx.core.app.ActivityCompat
 import androidx.appcompat.app.AppCompatActivity
 import android.util.Log
-import android.widget.Toast
+import androidx.activity.viewModels
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.location.*
 import com.google.android.gms.location.LocationServices
@@ -15,11 +15,7 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.BitmapDescriptor
-import com.google.android.gms.maps.model.BitmapDescriptorFactory
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
-import com.google.android.gms.maps.model.PointOfInterest
+import com.google.android.gms.maps.model.*
 import com.raywenderlich.placebook.databinding.ActivityMapsBinding
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.Place
@@ -27,7 +23,11 @@ import com.google.android.libraries.places.api.net.FetchPhotoRequest
 import com.google.android.libraries.places.api.net.FetchPlaceRequest
 import com.google.android.libraries.places.api.net.PlacesClient
 import com.raywenderlich.placebook.BuildConfig.MAPS_API_KEY
+import com.raywenderlich.placebook.R
 import com.raywenderlich.placebook.adapter.BookmarkInfoWindowAdapter
+import com.raywenderlich.placebook.viewmodel.MapsViewModel
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
@@ -38,6 +38,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private lateinit var placesClient: PlacesClient
 
+    private val mapsViewModel by viewModels<MapsViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,6 +57,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
+        setupMapListeners()
+        createBookmarkMarkerObserver()
         getCurrentLocation()
         map.setOnPoiClickListener {
             displayPoi(it)
@@ -180,7 +183,56 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private fun displayPoiDisplayStep(place: Place, photo: Bitmap?) {
         val marker = map.addMarker(MarkerOptions().position(place.latLng as LatLng)
             .title(place.name).snippet(place.phoneNumber))
-        marker?.tag = photo
+        marker?.tag = PlaceInfo(place, photo)
     }
 
+    private fun setupMapListeners() {
+        map.setInfoWindowAdapter(BookmarkInfoWindowAdapter(this))
+        map.setOnPoiClickListener {
+            displayPoi(it)
+        }
+        map.setOnInfoWindowClickListener {
+            handleInfoWindowClick(it)
+        }
+    }
+
+    private fun handleInfoWindowClick(marker: Marker) {
+        val placeInfo = (marker.tag as PlaceInfo)
+        if (placeInfo.place != null) {
+            GlobalScope.launch {
+                mapsViewModel.addBookmarkFromPlace(placeInfo.place, placeInfo.image)
+            }
+        }
+        marker.remove()
+    }
+
+    private fun addPlaceMarker(bookmark: MapsViewModel.BookmarkMarkerView): Marker? {
+        val marker = map.addMarker(MarkerOptions()
+            .position(bookmark.location)
+            .icon(BitmapDescriptorFactory.defaultMarker(
+                BitmapDescriptorFactory.HUE_AZURE))
+            .alpha(0.8f))
+        marker?.tag = bookmark
+        return marker
+    }
+    private fun displayAllBookmarks(
+        bookmarks: List<MapsViewModel.BookmarkMarkerView>) {
+        bookmarks.forEach { addPlaceMarker(it) }
+    }
+
+    private fun createBookmarkMarkerObserver() {
+        mapsViewModel.getBookmarkMarkerViews()?.observe(
+            this, {
+
+                map.clear()
+
+                it?.let {
+                    displayAllBookmarks(it)
+                }
+            })
+    }
+
+
+        class PlaceInfo(val place: Place? = null,
+                    val image: Bitmap? = null)
 }
