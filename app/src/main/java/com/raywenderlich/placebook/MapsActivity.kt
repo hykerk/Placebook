@@ -6,6 +6,7 @@ import android.os.Bundle
 import androidx.core.app.ActivityCompat
 import androidx.appcompat.app.AppCompatActivity
 import android.util.Log
+import android.widget.Toast
 import com.google.android.gms.location.*
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -41,6 +42,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
         getCurrentLocation()
+        map.setOnPoiClickListener {
+            Toast.makeText(this, it.name, Toast.LENGTH_LONG).show()
+        }
     }
 
     private fun setupLocationClient(){
