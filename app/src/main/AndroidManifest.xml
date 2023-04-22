@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -12,7 +13,13 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Placebook"
         tools:targetApi="31">
-
+        <activity
+            android:name=
+                "com.raywenderlich.placebook.ui.BookmarkDetailsActivity"
+            android:label="Bookmark"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:windowSoftInputMode="stateHidden">
+        </activity>
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
