@@ -14,8 +14,7 @@
         android:theme="@style/Theme.Placebook"
         tools:targetApi="31">
         <activity
-            android:name=
-                "com.raywenderlich.placebook.ui.BookmarkDetailsActivity"
+            android:name="com.raywenderlich.placebook.ui.BookmarkDetailsActivity"
             android:label="Bookmark"
             android:theme="@style/AppTheme.NoActionBar"
             android:windowSoftInputMode="stateHidden">
@@ -27,14 +26,15 @@
 
         <activity
             android:name=".ui.MapsActivity"
-            android:exported="true"
-            android:label="@string/title_activity_maps">
+            android:label="@string/title_activity_maps"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:exported="true">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+
     </application>
 
 </manifest>
