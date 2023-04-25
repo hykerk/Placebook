@@ -22,15 +22,21 @@ class BookmarkDetailsViewModel(application: Application) : AndroidViewModel(appl
             bookmark.name,
             bookmark.phone,
             bookmark.address,
-            bookmark.notes
+            bookmark.notes,
+            bookmark.category,
+            bookmark.longitude,
+            bookmark.latitude,
+            bookmark.placeId
         )
     }
 
-    private fun mapBookmarkToBookmarkView(bookmarkId: Long) {
+    fun mapBookmarkToBookmarkView(bookmarkId: Long) {
         val bookmark = bookmarkRepo.getLiveBookmark(bookmarkId)
         bookmarkDetailsView = Transformations.map(bookmark)
         { repoBookmark ->
-            bookmarkToBookmarkView(repoBookmark)
+            repoBookmark?.let { repoBookmark ->
+                bookmarkToBookmarkView(repoBookmark)
+            }
         }
     }
 
@@ -46,7 +52,11 @@ class BookmarkDetailsViewModel(application: Application) : AndroidViewModel(appl
         var name: String = "",
         var phone: String = "",
         var address: String = "",
-        var notes: String = ""
+        var notes: String = "",
+        var category: String = "",
+        var longitude: Double = 0.0,
+        var latitude: Double = 0.0,
+        var placeId: String? = null
     ) {
         fun getImage(context: Context) = id?.let {
             ImageUtils.loadBitmapFromFile(context,
@@ -70,6 +80,7 @@ class BookmarkDetailsViewModel(application: Application) : AndroidViewModel(appl
             bookmark.phone = bookmarkView.phone
             bookmark.address = bookmarkView.address
             bookmark.notes = bookmarkView.notes
+            bookmark.category = bookmarkView.category
         }
         return bookmark
     }
@@ -78,6 +89,25 @@ class BookmarkDetailsViewModel(application: Application) : AndroidViewModel(appl
         GlobalScope.launch {
             val bookmark = bookmarkViewToBookmark(bookmarkView)
             bookmark?.let { bookmarkRepo.updateBookmark(it) }
+        }
+    }
+
+    fun getCategoryResourceId(category: String): Int? {
+        return bookmarkRepo.getCategoryResourceId(category)
+    }
+
+    fun getCategories(): List<String> {
+        return bookmarkRepo.categories
+    }
+
+    fun deleteBookmark(bookmarkDetailsView: BookmarkDetailsView) {
+        GlobalScope.launch {
+            val bookmark = bookmarkDetailsView.id?.let {
+                bookmarkRepo.getBookmark(it)
+            }
+            bookmark?.let {
+                bookmarkRepo.deleteBookmark(it)
+            }
         }
     }
 

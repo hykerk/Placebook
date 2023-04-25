@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.raywenderlich.placebook.util.FileUtils
 import com.raywenderlich.placebook.util.ImageUtils
 
 @Entity
@@ -15,7 +16,8 @@ data class Bookmark(
     var latitude: Double = 0.0,
     var longitude: Double = 0.0,
     var phone: String = "",
-    var notes: String = ""
+    var notes: String = "",
+    var category: String = ""
 )
 {
     fun setImage(image: Bitmap, context: Context) {
@@ -28,4 +30,11 @@ data class Bookmark(
             return "bookmark$id.png"
         }
     }
+
+    fun deleteImage(context: Context) {
+        id?.let {
+            FileUtils.deleteFile(context, generateImageFilename(it))
+        }
+    }
+
 }
